@@ -5,6 +5,7 @@ import { gameTypes } from "@/lib/game-data";
 import { useGameStore } from "@/lib/game-store";
 import { GameCard } from "./game-card";
 import { AdBanner } from "./ad-banner";
+import { ThemeToggle } from "./theme-toggle";
 
 interface HomePageProps {
   onSelectGame: () => void;
@@ -20,6 +21,11 @@ export function HomePage({ onSelectGame }: HomePageProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Theme Toggle */}
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
+
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}

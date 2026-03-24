@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Users, Minus, Plus, Flame, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,9 +63,11 @@ export function SetupPage({ onStartGame, onBack }: SetupPageProps) {
   };
 
   // Initialize players if not set
-  if (players.length === 0) {
-    setPlayers(playerCount);
-  }
+  useEffect(() => {
+    if (players.length === 0) {
+      setPlayers(playerCount);
+    }
+  }, [players.length, playerCount, setPlayers]);
 
   return (
     <div className="flex min-h-screen flex-col">

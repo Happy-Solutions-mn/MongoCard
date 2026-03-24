@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const inter = Inter({ 
@@ -32,7 +33,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1a1625',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f8f7fa' },
+    { media: '(prefers-color-scheme: dark)', color: '#1a1625' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -45,9 +49,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="mn">
+    <html lang="mn" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased min-h-screen bg-background text-foreground`}>
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
