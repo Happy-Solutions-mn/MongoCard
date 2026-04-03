@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
@@ -15,7 +16,11 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-9 w-9">
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="h-11 w-11 rounded-full bg-secondary/50"
+      >
         <span className="sr-only">Toggle theme</span>
       </Button>
     );
@@ -25,14 +30,32 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      className="h-9 w-9"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="relative h-11 w-11 rounded-full bg-secondary/50 backdrop-blur-sm hover:bg-secondary overflow-hidden"
     >
-      {theme === "dark" ? (
-        <Sun className="h-5 w-5 text-accent" />
-      ) : (
-        <Moon className="h-5 w-5 text-primary" />
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        {theme === "dark" ? (
+          <motion.div
+            key="sun"
+            initial={{ y: 20, opacity: 0, rotate: -90 }}
+            animate={{ y: 0, opacity: 1, rotate: 0 }}
+            exit={{ y: -20, opacity: 0, rotate: 90 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Sun className="h-5 w-5 text-amber-400" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="moon"
+            initial={{ y: 20, opacity: 0, rotate: 90 }}
+            animate={{ y: 0, opacity: 1, rotate: 0 }}
+            exit={{ y: -20, opacity: 0, rotate: -90 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Moon className="h-5 w-5 text-primary" />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <span className="sr-only">Toggle theme</span>
     </Button>
   );

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Users, Minus, Plus, Flame, Sparkles, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Users, Minus, Plus, Flame, Sparkles, Zap, ChevronDown, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGameStore } from "@/lib/game-store";
@@ -15,21 +15,27 @@ interface SetupPageProps {
 }
 
 const categoryIcons: Record<Card["category"], React.ReactNode> = {
-  light: <Sparkles className="h-4 w-4" />,
-  medium: <Zap className="h-4 w-4" />,
-  hot: <Flame className="h-4 w-4" />,
+  light: <Sparkles className="h-5 w-5" />,
+  medium: <Zap className="h-5 w-5" />,
+  hot: <Flame className="h-5 w-5" />,
 };
 
 const categoryColors: Record<Card["category"], string> = {
-  light: "bg-emerald-500/20 border-emerald-500 text-emerald-400 hover:bg-emerald-500/30",
-  medium: "bg-amber-500/20 border-amber-500 text-amber-400 hover:bg-amber-500/30",
-  hot: "bg-rose-500/20 border-rose-500 text-rose-400 hover:bg-rose-500/30",
+  light: "border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10",
+  medium: "border-amber-500/50 text-amber-500 hover:bg-amber-500/10",
+  hot: "border-rose-500/50 text-rose-500 hover:bg-rose-500/10",
 };
 
 const categoryColorsSelected: Record<Card["category"], string> = {
-  light: "bg-emerald-500 border-emerald-500 text-white",
-  medium: "bg-amber-500 border-amber-500 text-white",
-  hot: "bg-rose-500 border-rose-500 text-white",
+  light: "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30",
+  medium: "bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30",
+  hot: "bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/30",
+};
+
+const categoryDescriptions: Record<Card["category"], string> = {
+  light: "Энгийн, хөгжилтэй",
+  medium: "Бага зэрэг халуун",
+  hot: "18+ контент",
 };
 
 export function SetupPage({ onStartGame, onBack }: SetupPageProps) {
@@ -62,7 +68,6 @@ export function SetupPage({ onStartGame, onBack }: SetupPageProps) {
     onStartGame();
   };
 
-  // Initialize players if not set
   useEffect(() => {
     if (players.length === 0) {
       setPlayers(playerCount);
@@ -70,64 +75,101 @@ export function SetupPage({ onStartGame, onBack }: SetupPageProps) {
   }, [players.length, playerCount, setPlayers]);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col overflow-hidden">
+      {/* Background decoration */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-1/4 top-0 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute -left-1/4 bottom-1/4 h-64 w-64 rounded-full bg-accent/15 blur-3xl" />
+      </div>
+
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 px-4 py-6"
+        className="relative z-10 flex items-center gap-4 px-4 py-5"
       >
         <Button
           variant="ghost"
           size="icon"
           onClick={onBack}
-          className="shrink-0"
+          className="shrink-0 rounded-full bg-secondary/50 backdrop-blur-sm hover:bg-secondary"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold">{selectedGame?.name}</h1>
-          <p className="text-sm text-muted-foreground">Тохиргоо</p>
+          <h1 className="text-2xl font-bold">{selectedGame?.name}</h1>
+          <p className="text-sm text-muted-foreground">Тоглоомын тохиргоо</p>
         </div>
-        <div className="text-4xl">{selectedGame?.icon}</div>
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring" }}
+          className={cn(
+            "flex h-14 w-14 items-center justify-center rounded-2xl text-3xl",
+            "bg-gradient-to-br shadow-lg",
+            selectedGame?.color
+          )}
+        >
+          {selectedGame?.icon}
+        </motion.div>
       </motion.header>
 
       {/* Content */}
-      <div className="flex-1 px-4 pb-8 space-y-8">
+      <div className="relative z-10 flex-1 space-y-6 overflow-y-auto px-4 pb-28">
         {/* Player Count */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="space-y-4"
+          className="rounded-3xl bg-card/80 p-6 shadow-lg backdrop-blur-sm"
         >
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="h-5 w-5" />
-            <h2 className="font-medium">Тоглогчдын тоо</h2>
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-semibold">Тоглогчдын тоо</h2>
+              <p className="text-xs text-muted-foreground">2-20 хүн тоглох боломжтой</p>
+            </div>
           </div>
 
           <div className="flex items-center justify-center gap-6">
-            <Button
-              variant="outline"
-              size="icon"
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => handlePlayerCountChange(-1)}
               disabled={playerCount <= 2}
-              className="h-12 w-12 rounded-full"
+              className={cn(
+                "flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-border bg-secondary/50 transition-colors",
+                "hover:border-primary hover:bg-primary/10",
+                "disabled:opacity-40 disabled:hover:border-border disabled:hover:bg-secondary/50"
+              )}
             >
-              <Minus className="h-5 w-5" />
-            </Button>
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-card border border-border">
-              <span className="text-3xl font-bold">{playerCount}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
+              <Minus className="h-6 w-6" />
+            </motion.button>
+            
+            <motion.div 
+              key={playerCount}
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-primary/80 shadow-xl shadow-primary/30"
+            >
+              <span className="text-4xl font-bold text-primary-foreground">{playerCount}</span>
+            </motion.div>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => handlePlayerCountChange(1)}
               disabled={playerCount >= 20}
-              className="h-12 w-12 rounded-full"
+              className={cn(
+                "flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-border bg-secondary/50 transition-colors",
+                "hover:border-primary hover:bg-primary/10",
+                "disabled:opacity-40 disabled:hover:border-border disabled:hover:bg-secondary/50"
+              )}
             >
-              <Plus className="h-5 w-5" />
-            </Button>
+              <Plus className="h-6 w-6" />
+            </motion.button>
           </div>
         </motion.section>
 
@@ -136,32 +178,55 @@ export function SetupPage({ onStartGame, onBack }: SetupPageProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="rounded-3xl bg-card/80 p-6 shadow-lg backdrop-blur-sm"
         >
-          <Button
-            variant="outline"
-            className="w-full"
+          <button
+            className="flex w-full items-center justify-between"
             onClick={() => setShowNames(!showNames)}
           >
-            {showNames ? "Нэрүүдийг нуух" : "Тоглогчдын нэр оруулах (заавал биш)"}
-          </Button>
-
-          {showNames && (
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                <span className="text-lg">✏️</span>
+              </div>
+              <div className="text-left">
+                <h2 className="font-semibold">Тоглогчдын нэр</h2>
+                <p className="text-xs text-muted-foreground">Заавал биш</p>
+              </div>
+            </div>
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="mt-4 space-y-3"
+              animate={{ rotate: showNames ? 180 : 0 }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary"
             >
-              {players.map((player, index) => (
-                <Input
-                  key={player.id}
-                  placeholder={`Тоглогч ${index + 1}`}
-                  value={player.name === `Тоглогч ${index + 1}` ? "" : player.name}
-                  onChange={(e) => updatePlayerName(index, e.target.value)}
-                  className="bg-card"
-                />
-              ))}
+              <ChevronDown className="h-4 w-4" />
             </motion.div>
-          )}
+          </button>
+
+          <AnimatePresence>
+            {showNames && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-5 space-y-3 overflow-hidden"
+              >
+                {players.map((player, index) => (
+                  <motion.div
+                    key={player.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Input
+                      placeholder={`Тоглогч ${index + 1}`}
+                      value={player.name === `Тоглогч ${index + 1}` ? "" : player.name}
+                      onChange={(e) => updatePlayerName(index, e.target.value || `Тоглогч ${index + 1}`)}
+                      className="h-12 rounded-xl border-2 bg-secondary/30 px-4 transition-colors focus:border-primary"
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.section>
 
         {/* Category Selection */}
@@ -169,49 +234,96 @@ export function SetupPage({ onStartGame, onBack }: SetupPageProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="space-y-4"
+          className="rounded-3xl bg-card/80 p-6 shadow-lg backdrop-blur-sm"
         >
-          <h2 className="font-medium text-muted-foreground">Картын ангилал</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {(["light", "medium", "hot"] as const).map((category) => {
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10">
+              <Flame className="h-5 w-5 text-rose-500" />
+            </div>
+            <div>
+              <h2 className="font-semibold">Картын түвшин</h2>
+              <p className="text-xs text-muted-foreground">Дор хаяж нэг сонгоно уу</p>
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            {(["light", "medium", "hot"] as const).map((category, index) => {
               const isSelected = selectedCategories.includes(category);
               return (
-                <button
+                <motion.button
                   key={category}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.35 + index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => toggleCategory(category)}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
-                    isSelected
-                      ? categoryColorsSelected[category]
-                      : categoryColors[category]
+                    "flex items-center gap-4 rounded-2xl border-2 p-4 transition-all duration-300",
+                    isSelected ? categoryColorsSelected[category] : categoryColors[category]
                   )}
                 >
-                  {categoryIcons[category]}
-                  <span className="text-sm font-medium">
-                    {categoryLabels[category]}
-                  </span>
-                </button>
+                  <div className={cn(
+                    "flex h-12 w-12 items-center justify-center rounded-xl transition-colors",
+                    isSelected ? "bg-white/20" : "bg-current/10"
+                  )}>
+                    {categoryIcons[category]}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-semibold">{categoryLabels[category]}</div>
+                    <div className={cn(
+                      "text-xs transition-colors",
+                      isSelected ? "text-white/80" : "text-muted-foreground"
+                    )}>
+                      {categoryDescriptions[category]}
+                    </div>
+                  </div>
+                  <div className={cn(
+                    "h-6 w-6 rounded-full border-2 transition-all",
+                    isSelected 
+                      ? "border-white bg-white" 
+                      : "border-current opacity-50"
+                  )}>
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="flex h-full w-full items-center justify-center"
+                      >
+                        <div className={cn(
+                          "h-3 w-3 rounded-full",
+                          category === "light" && "bg-emerald-500",
+                          category === "medium" && "bg-amber-500",
+                          category === "hot" && "bg-rose-500"
+                        )} />
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.button>
               );
             })}
           </div>
-          <p className="text-center text-xs text-muted-foreground">
-            Хамгийн багадаа нэг ангилал сонгоно уу
-          </p>
         </motion.section>
       </div>
 
       {/* Start Button */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur-sm p-4"
+        transition={{ delay: 0.5 }}
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-border/50 bg-background/80 p-4 backdrop-blur-xl"
       >
         <Button
           size="lg"
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg h-14"
+          className={cn(
+            "w-full gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary/90 font-bold text-lg h-16",
+            "shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40",
+            "disabled:opacity-50 disabled:shadow-none"
+          )}
           onClick={handleStartGame}
+          disabled={selectedCategories.length === 0}
         >
+          <Play className="h-5 w-5 fill-current" />
           Тоглоом эхлэх
         </Button>
       </motion.div>

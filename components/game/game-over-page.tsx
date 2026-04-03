@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { RotateCcw, Home, PartyPopper } from "lucide-react";
+import { RotateCcw, Home, Trophy, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "@/lib/game-store";
 import { gameTypes } from "@/lib/game-data";
+import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
 
 interface GameOverPageProps {
@@ -21,8 +22,7 @@ export function GameOverPage({ onPlayAgain, onNewGame }: GameOverPageProps) {
   const cardsPlayed = getCardsPlayed();
 
   useEffect(() => {
-    // Fire confetti on mount
-    const duration = 3 * 1000;
+    const duration = 4 * 1000;
     const animationEnd = Date.now() + duration;
 
     const randomInRange = (min: number, max: number) => {
@@ -47,7 +47,7 @@ export function GameOverPage({ onPlayAgain, onNewGame }: GameOverPageProps) {
           x: randomInRange(0.1, 0.9),
           y: Math.random() - 0.2,
         },
-        colors: ["#ff6b9d", "#ffd93d", "#6bcb77", "#4d96ff"],
+        colors: ["#ec4899", "#f59e0b", "#10b981", "#6366f1", "#8b5cf6"],
       });
     }, 250);
 
@@ -60,32 +60,97 @@ export function GameOverPage({ onPlayAgain, onNewGame }: GameOverPageProps) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6">
-      {/* Ad overlay - shows first then fades */}
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
+      {/* Background decoration */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
+      </div>
+
+      {/* Floating stars decoration */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="pointer-events-none absolute text-primary/30"
+          initial={{ 
+            x: Math.random() * 400 - 200, 
+            y: Math.random() * 400 - 200,
+            scale: 0
+          }}
+          animate={{ 
+            scale: [0, 1, 0],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ 
+            duration: 3,
+            delay: i * 0.5,
+            repeat: Infinity,
+            repeatDelay: 2
+          }}
+        >
+          <Star className="h-6 w-6 fill-current" />
+        </motion.div>
+      ))}
+
+      {/* Ad overlay */}
       {showAd && (
         <motion.div
           initial={{ opacity: 1 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/98 backdrop-blur-md"
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 200 }}
             className="flex flex-col items-center p-6"
           >
-            <div className="mb-6 flex h-80 w-full max-w-md flex-col items-center justify-center rounded-2xl border border-dashed border-muted-foreground/30 bg-card/50 p-8">
-              <div className="mb-4 text-6xl">🎉</div>
-              <h3 className="mb-2 text-xl font-bold text-foreground">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-accent shadow-xl"
+            >
+              <Trophy className="h-10 w-10 text-white" />
+            </motion.div>
+            
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-2 text-2xl font-bold"
+            >
+              Тоглоом дууслаа!
+            </motion.h2>
+            
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="mb-8 text-muted-foreground"
+            >
+              Нийт {cardsPlayed} карт тоглолоо
+            </motion.p>
+            
+            <div className="mb-8 flex h-72 w-full max-w-sm flex-col items-center justify-center rounded-3xl border border-dashed border-muted-foreground/30 bg-card/50 p-8">
+              <div className="mb-4 text-6xl">📺</div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
                 Зар сурталчилгаа
               </h3>
               <p className="text-center text-sm text-muted-foreground">
-                Тоглоом дууссан! Энд таны зар харагдана.
+                Энд таны зар харагдана
               </p>
             </div>
+            
             <Button
               size="lg"
               onClick={() => setShowAd(false)}
-              className="mt-4"
+              className={cn(
+                "gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary/90 px-8 font-bold h-14",
+                "shadow-xl shadow-primary/30"
+              )}
             >
+              <Sparkles className="h-5 w-5" />
               Үргэлжлүүлэх
             </Button>
           </motion.div>
@@ -97,27 +162,75 @@ export function GameOverPage({ onPlayAgain, onNewGame }: GameOverPageProps) {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
-        className="text-center"
+        className="relative z-10 text-center"
       >
+        {/* Trophy animation */}
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", delay: 0.3 }}
-          className="mb-6"
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", delay: 0.3, stiffness: 200 }}
+          className="mb-6 inline-block"
         >
-          <PartyPopper className="mx-auto h-20 w-20 text-accent" />
+          <div className={cn(
+            "flex h-28 w-28 items-center justify-center rounded-[2rem] shadow-2xl",
+            "bg-gradient-to-br",
+            selectedGame?.color
+          )}>
+            <span className="text-5xl">{selectedGame?.icon}</span>
+          </div>
         </motion.div>
 
-        <h1 className="mb-2 text-3xl font-bold">Тоглоом дууслаа!</h1>
-        <p className="mb-2 text-muted-foreground">{selectedGame?.name}</p>
-        <p className="mb-8 text-sm text-muted-foreground">
-          Нийт {cardsPlayed} карт тоглолоо
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent">
+            <Trophy className="h-4 w-4" />
+            Баяр хүргэе!
+          </div>
+        </motion.div>
 
-        <div className="flex flex-col gap-4">
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mb-3 text-4xl font-black"
+        >
+          Тоглоом дууслаа!
+        </motion.h1>
+        
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mb-2 text-lg text-muted-foreground"
+        >
+          {selectedGame?.name}
+        </motion.p>
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mb-10 inline-flex items-center gap-2 rounded-2xl bg-card px-6 py-3 shadow-lg"
+        >
+          <span className="text-3xl font-bold text-primary">{cardsPlayed}</span>
+          <span className="text-muted-foreground">карт тоглосон</span>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="flex flex-col gap-4"
+        >
           <Button
             size="lg"
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14"
+            className={cn(
+              "gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary/90 font-bold text-lg h-16",
+              "shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40"
+            )}
             onClick={handlePlayAgain}
           >
             <RotateCcw className="h-5 w-5" />
@@ -127,13 +240,13 @@ export function GameOverPage({ onPlayAgain, onNewGame }: GameOverPageProps) {
           <Button
             size="lg"
             variant="outline"
-            className="gap-2 h-14"
+            className="gap-3 rounded-2xl border-2 font-semibold h-14 hover:bg-secondary"
             onClick={onNewGame}
           >
             <Home className="h-5 w-5" />
             Өөр тоглоом сонгох
           </Button>
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );
