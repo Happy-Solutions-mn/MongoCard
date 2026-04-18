@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import { Card, gameCards } from "./game-data";
 
-interface Player {
+export interface Player {
   id: string;
   name: string;
+  /** `getPlayerSwatch(colorIndex)` — систем автоматаар онооно */
+  colorIndex: number;
 }
 
 interface GameState {
@@ -23,7 +25,8 @@ interface GameState {
   setSelectedGame: (gameId: string) => void;
   setPlayers: (count: number) => void;
   updatePlayerName: (index: number, name: string) => void;
-  toggleCategory: (category: Card["category"]) => void;
+  /** Зөвхөн нэг түвшин (radio) */
+  selectCategoryLevel: (category: Card["category"]) => void;
   startGame: () => void;
   drawCard: () => void;
   revealCard: () => void;
@@ -36,7 +39,7 @@ interface GameState {
 export const useGameStore = create<GameState>((set, get) => ({
   selectedGameId: null,
   players: [],
-  selectedCategories: ["light", "medium"],
+  selectedCategories: ["medium"],
   currentPlayerIndex: 0,
   usedCardIds: new Set(),
   currentCard: null,
@@ -46,11 +49,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   setSelectedGame: (gameId) => set({ selectedGameId: gameId }),
 
   setPlayers: (count) => {
+    const prev = get().players;
     const players: Player[] = [];
     for (let i = 0; i < count; i++) {
+      const kept = prev[i];
       players.push({
-        id: `player-${i}`,
-        name: `Тоглогч ${i + 1}`,
+        id: kept?.id ?? `player-${i}`,
+        name: kept?.name ?? `Тоглогч ${i + 1}`,
+        colorIndex: i,
       });
     }
     set({ players });
@@ -64,15 +70,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ players });
   },
 
-  toggleCategory: (category) => {
-    const categories = get().selectedCategories;
-    if (categories.includes(category)) {
-      if (categories.length > 1) {
-        set({ selectedCategories: categories.filter((c) => c !== category) });
-      }
-    } else {
-      set({ selectedCategories: [...categories, category] });
-    }
+  selectCategoryLevel: (category) => {
+    set({ selectedCategories: [category] });
   },
 
   startGame: () => {
@@ -135,7 +134,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       selectedGameId: null,
       players: [],
-      selectedCategories: ["light", "medium"],
+      selectedCategories: ["medium"],
       currentPlayerIndex: 0,
       usedCardIds: new Set(),
       currentCard: null,

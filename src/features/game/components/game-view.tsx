@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { HomePage } from "@/components/game/home-page";
-import { SetupPage } from "@/components/game/setup-page";
-import { GamePage } from "@/components/game/game-page";
-import { GameOverPage } from "@/components/game/game-over-page";
 import { useGameStore } from "@/lib/game-store";
+import type { GameScreen } from "../types/game-screen";
+import { HomePage } from "./home-page";
+import { SetupPage } from "./setup-page";
+import { GamePage } from "./game-page";
+import { GameOverPage } from "./game-over-page";
 
-type Screen = "home" | "setup" | "game" | "game-over";
-
-export default function App() {
-  const [screen, setScreen] = useState<Screen>("home");
+export function GameView() {
+  const [screen, setScreen] = useState<GameScreen>("home");
   const { resetGame } = useGameStore();
 
   const handleSelectGame = () => {
