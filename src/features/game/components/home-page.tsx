@@ -72,11 +72,12 @@ export function HomePage({ onSelectGame }: HomePageProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mx-auto grid max-w-lg gap-4 md:max-w-4xl md:grid-cols-2"
+          className="mx-auto grid max-w-lg grid-cols-1 items-stretch gap-4 md:max-w-4xl md:grid-cols-2"
         >
           {gameTypes.map((game, index) => (
             <motion.div
               key={game.id}
+              className="h-full min-h-0"
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ 
