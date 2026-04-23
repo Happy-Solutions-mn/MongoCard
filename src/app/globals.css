@@ -216,3 +216,37 @@
 .card-shine:hover::after {
   transform: translateX(100%);
 }
+
+/* Лобби — тоглоомын хэвтээ marquee (скроллбаргүй, давтагдах хөдөлгөөн) */
+@keyframes lobby-games-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.lobby-games-marquee {
+  overflow: hidden;
+}
+
+.lobby-games-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 0.625rem;
+  will-change: transform;
+  animation: lobby-games-marquee 48s linear infinite;
+}
+
+.lobby-games-marquee-track:hover,
+.lobby-games-marquee-track:focus-within {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby-games-marquee-track {
+    animation: none;
+    transform: none;
+  }
+}

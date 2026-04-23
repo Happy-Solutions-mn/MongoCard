@@ -5,10 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, RotateCcw, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "@/lib/game-store";
-import { gameTypes, categoryLabels } from "@/lib/game-data";
+import {
+  gameTypes,
+  categoryLabels,
+  LOBBY_PACK_ORDER,
+  lobbyPackMeta,
+  lobbyPackIdFromSelection,
+} from "@/lib/game-data";
 import { getPlayerSwatch } from "@/lib/player-colors";
 import { cn } from "@/lib/utils";
 import { InterstitialAd } from "./interstitial-ad";
+import { TruthOrDareChoice } from "./truth-or-dare-choice";
 
 interface GamePageProps {
   onGameOver: () => void;
@@ -37,6 +44,21 @@ const flipSpring = {
   mass: 0.65,
 };
 
+/** Үнэн/Зориг сонгосны дараа асуултын карт — илүү хурдан «гарч ирэх» */
+const flipSpringTod = {
+  type: "spring" as const,
+  stiffness: 320,
+  damping: 24,
+  mass: 0.42,
+};
+
+const todQuestionShellSpring = {
+  type: "spring" as const,
+  stiffness: 520,
+  damping: 30,
+  mass: 0.48,
+};
+
 export function GamePage({ onGameOver, onBack }: GamePageProps) {
   const {
     selectedGameId,
@@ -50,12 +72,21 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
     nextPlayer,
     getCardsPlayed,
     isGameOver,
+    truthOrDareSide,
+    setTruthOrDareSide,
+    selectedCategories,
+    switchDeckDuringGame,
   } = useGameStore();
 
   const [showAd, setShowAd] = useState(false);
   const [pendingNext, setPendingNext] = useState(false);
+  const [showDeckPicker, setShowDeckPicker] = useState(false);
 
   const selectedGame = gameTypes.find((g) => g.id === selectedGameId);
+  const activePackId = lobbyPackIdFromSelection(selectedCategories);
+  const isTruthOrDare = selectedGameId === "truth-or-dare";
+  const needsTruthOrDarePick =
+    isTruthOrDare && truthOrDareSide === null && !currentCard;
   const currentPlayer = players[currentPlayerIndex];
   const currentSwatch = currentPlayer
     ? getPlayerSwatch(currentPlayer.colorIndex)
@@ -98,7 +129,6 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
   return (
     <>
       <div className="relative flex min-h-screen flex-col overflow-hidden">
-        {/* Background — одоогийн тоглогчийн өнгөтэй ойртуулсан гэрэл */}
         <motion.div
           key={`ambient-${currentPlayerIndex}-${currentPlayer?.id ?? "x"}`}
           className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -139,15 +169,20 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
             <div className="text-sm font-medium">{selectedGame?.name}</div>
           </div>
 
-          <div
+          <button
+            type="button"
+            onClick={() => setShowDeckPicker(true)}
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl text-xl",
-              "bg-gradient-to-br shadow-lg",
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl",
+              "bg-gradient-to-br shadow-lg transition hover:brightness-110 hover:ring-2 hover:ring-white/35",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
               selectedGame?.color,
             )}
+            aria-label="Картын багц солих"
+            title="Картын багц солих"
           >
             {selectedGame?.icon}
-          </div>
+          </button>
         </motion.header>
 
         {/* Одоогийн ээлж — тоглогч солигдох бүрт шинээр орж ирнэ */}
@@ -202,9 +237,21 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
         {/* Card Area — ээлж бүрт: Карт ухах ↔ карт */}
         <div className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-3 py-3 sm:px-4 sm:py-4">
           <AnimatePresence mode="wait">
-            {!currentCard ? (
+            {needsTruthOrDarePick ? (
+              <TruthOrDareChoice
+                key={`tod-pick-${currentPlayerIndex}`}
+                onPick={setTruthOrDareSide}
+                dareSurfaceClassName={
+                  currentSwatch?.deckSurface ??
+                  cn(
+                    "bg-gradient-to-br shadow-2xl",
+                    selectedGame?.color ?? "from-slate-600 to-slate-900",
+                  )
+                }
+              />
+            ) : !currentCard && !isTruthOrDare ? (
               <motion.div
-                key={`deck-${currentPlayerIndex}`}
+                key={`deck-${currentPlayerIndex}-${truthOrDareSide ?? "na"}`}
                 initial={{ opacity: 0, y: 36, scale: 0.9, rotate: -2 }}
                 animate={{
                   opacity: 1,
@@ -279,17 +326,29 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                   <div className="absolute -bottom-5 left-1/2 h-5 w-52 -translate-x-1/2 rounded-full bg-black/25 blur-xl sm:w-64" />
                 </motion.button>
               </motion.div>
-            ) : (
+            ) : currentCard ? (
               <motion.div
                 key={currentCard.id}
                 className={cn("relative", CARD_SHELL)}
                 style={{ perspective: 1200 }}
-                initial={{ opacity: 0, y: 40, scale: 0.94 }}
+                initial={
+                  isTruthOrDare
+                    ? {
+                        opacity: 0,
+                        y: 52,
+                        scale: 0.78,
+                        rotateX: 12,
+                      }
+                    : { opacity: 0, y: 40, scale: 0.94 }
+                }
                 animate={{
                   opacity: 1,
                   y: 0,
                   scale: 1,
-                  transition: { ...springSoft, delay: 0.05 },
+                  rotateX: 0,
+                  transition: isTruthOrDare
+                    ? { ...todQuestionShellSpring }
+                    : { ...springSoft, delay: 0.05 },
                 }}
                 exit={{
                   opacity: 0,
@@ -302,7 +361,7 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                   className="relative h-full w-full"
                   initial={{ rotateY: 180, opacity: 0 }}
                   animate={{ rotateY: isCardRevealed ? 0 : 180, opacity: 1 }}
-                  transition={flipSpring}
+                  transition={isTruthOrDare ? flipSpringTod : flipSpring}
                   style={{ transformStyle: "preserve-3d" }}
                 >
                   <motion.button
@@ -342,7 +401,8 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                         <span
                           className={cn(
                             "h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white/50",
-                            currentCard.category === "light" && "bg-emerald-300",
+                            currentCard.category === "light" &&
+                              "bg-emerald-300",
                             currentCard.category === "medium" && "bg-amber-300",
                             currentCard.category === "hot" && "bg-rose-300",
                           )}
@@ -402,7 +462,10 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                       className={cn(
                         "absolute inset-0 flex items-center justify-center overflow-hidden rounded-3xl ring-1 ring-white/15",
                         currentSwatch?.deckSurface ??
-                          cn("bg-gradient-to-br shadow-2xl", selectedGame?.color),
+                          cn(
+                            "bg-gradient-to-br shadow-2xl",
+                            selectedGame?.color,
+                          ),
                       )}
                       style={{
                         backfaceVisibility: "hidden",
@@ -433,7 +496,7 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                 {/* Card shadow */}
                 <div className="pointer-events-none absolute -bottom-5 left-1/2 h-5 w-52 -translate-x-1/2 rounded-full bg-black/25 blur-xl sm:w-64" />
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
 
@@ -488,6 +551,86 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
           />
         </div>
       </div>
+
+      <AnimatePresence>
+        {showDeckPicker && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="deck-picker-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 p-4 pb-8 backdrop-blur-sm sm:items-center"
+            onClick={() => setShowDeckPicker(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl border border-border/80 bg-card p-5 shadow-2xl"
+            >
+              <h2
+                id="deck-picker-title"
+                className="text-center text-lg font-bold tracking-tight"
+              >
+                Картын багц
+              </h2>
+              <p className="mt-1 text-center text-xs text-muted-foreground">
+                Сонгосны дараа энэ тоглолтын ашигласан карт шинээр тоологдоно.
+              </p>
+              <div
+                className="mt-4 grid grid-cols-2 gap-2"
+                role="listbox"
+                aria-label="Картын багц"
+              >
+                {LOBBY_PACK_ORDER.map((id) => {
+                  const meta = lobbyPackMeta[id];
+                  const selected = activePackId === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      onClick={() => {
+                        switchDeckDuringGame(meta.categories);
+                        setShowDeckPicker(false);
+                      }}
+                      className={cn(
+                        "flex min-h-[3.75rem] items-center gap-2 rounded-2xl border-2 px-2.5 py-2 text-left text-[11px] font-black leading-tight tracking-tight transition-colors sm:min-h-[4rem] sm:text-xs",
+                        selected ? meta.selected : meta.idle,
+                      )}
+                    >
+                      <span className="text-lg sm:text-xl" aria-hidden>
+                        {meta.emoji}
+                      </span>
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 whitespace-nowrap",
+                          selected && id === "spicy" && "text-zinc-950",
+                        )}
+                      >
+                        {meta.title}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-4 w-full rounded-xl font-semibold"
+                onClick={() => setShowDeckPicker(false)}
+              >
+                Болих
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Interstitial Ad */}
       <InterstitialAd isOpen={showAd} onClose={handleAdClose} />
