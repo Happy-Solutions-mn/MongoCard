@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   ChevronRight,
   HelpCircle,
   Minus,
   Plus,
+  Settings,
   Sparkles,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,6 +38,7 @@ type HomePhase = "lobby" | "games";
 export function HomePage({ onSelectGame }: HomePageProps) {
   const [phase, setPhase] = useState<HomePhase>("lobby");
   const [showHelp, setShowHelp] = useState(false);
+  const [showAgeGate, setShowAgeGate] = useState<HomeLobbyPackId | null>(null);
   const [draftPlayerName, setDraftPlayerName] = useState("");
 
   const {
@@ -45,6 +49,8 @@ export function HomePage({ onSelectGame }: HomePageProps) {
     setPlayers,
     appendPlayer,
     removePlayerAt,
+    ageConfirmed,
+    setAgeConfirmed,
   } = useGameStore();
 
   const activePackId = lobbyPackIdFromSelection(selectedCategories);
@@ -56,7 +62,19 @@ export function HomePage({ onSelectGame }: HomePageProps) {
   };
 
   const pickPack = (id: HomeLobbyPackId) => {
+    if (lobbyPackMeta[id].requiresAgeConfirm && !ageConfirmed) {
+      setShowAgeGate(id);
+      return;
+    }
     setSelectedCategories(lobbyPackMeta[id].categories);
+  };
+
+  const handleConfirmAge = () => {
+    if (!showAgeGate) return;
+    setAgeConfirmed(true);
+    setSelectedCategories(lobbyPackMeta[showAgeGate].categories);
+    toast.success("Тохиргоо хадгалагдлаа");
+    setShowAgeGate(null);
   };
 
   const commitDraftPlayer = () => {
@@ -81,8 +99,19 @@ export function HomePage({ onSelectGame }: HomePageProps) {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.35 }}
-        className="absolute right-4 top-4 z-10"
+        className="absolute right-4 top-4 z-10 flex items-center gap-2"
       >
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="h-11 w-11 rounded-full bg-secondary/50 backdrop-blur-sm hover:bg-secondary"
+          aria-label="Тохиргоо"
+        >
+          <Link href="/settings">
+            <Settings className="h-5 w-5" />
+          </Link>
+        </Button>
         <ThemeToggle />
       </motion.div>
 
@@ -445,6 +474,68 @@ export function HomePage({ onSelectGame }: HomePageProps) {
               >
                 Ойлголоо
               </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAgeGate && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="age-gate-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 p-4 pb-8 backdrop-blur-sm sm:items-center"
+            onClick={() => setShowAgeGate(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl border border-border/80 bg-card p-6 shadow-2xl"
+            >
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/15 text-3xl">
+                🔞
+              </div>
+              <h2
+                id="age-gate-title"
+                className="text-center text-lg font-bold tracking-tight"
+              >
+                Энэ багц 18+ контент агуулна
+              </h2>
+              <p className="mt-2 text-center text-sm text-muted-foreground">
+                Үргэлжлүүлэхийн өмнө та 18 нас хүрсэн гэдгээ баталгаажуулна уу.
+                Энэ сонголтыг та{" "}
+                <Link
+                  href="/settings"
+                  className="font-semibold text-foreground hover:underline"
+                >
+                  Тохиргоо
+                </Link>
+                -ноос хэдийд ч өөрчилж болно.
+              </p>
+              <div className="mt-5 flex flex-col gap-2">
+                <Button
+                  type="button"
+                  className="w-full rounded-xl font-bold"
+                  onClick={handleConfirmAge}
+                >
+                  Би 18+ нас хүрсэн
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full rounded-xl"
+                  onClick={() => setShowAgeGate(null)}
+                >
+                  Болих
+                </Button>
+              </div>
             </motion.div>
           </motion.div>
         )}

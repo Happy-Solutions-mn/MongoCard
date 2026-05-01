@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  RotateCcw,
+  ChevronRight,
+  Sparkles,
+  SkipForward,
+  Undo2,
+  Timer as TimerIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "@/lib/game-store";
 import {
@@ -14,18 +22,16 @@ import {
 } from "@/lib/game-data";
 import { getPlayerSwatch } from "@/lib/player-colors";
 import { cn } from "@/lib/utils";
+import { useFeedback } from "@/hooks/use-feedback";
 import { InterstitialAd } from "./interstitial-ad";
 import { TruthOrDareChoice } from "./truth-or-dare-choice";
+import { DareTimer } from "./dare-timer";
 
 interface GamePageProps {
   onGameOver: () => void;
   onBack: () => void;
 }
 
-/**
- * Картын хэмжээ — тодорхой `h-` заавал (absolute гаднуурх дотоод хэсэгт `h-full` ажиллана).
- * Зөвхөн min-h байвал эцэгийн өндөр 0 болж 3D карт нягтрах асуудал гардаг.
- */
 const CARD_SHELL =
   "relative w-[min(22rem,calc(100vw-2rem))] h-[min(28rem,calc(100dvh-14rem))] max-h-[min(36rem,calc(100dvh-12rem))] sm:h-[min(32rem,calc(100dvh-13rem))] sm:w-[min(24rem,calc(100vw-2.5rem))] sm:max-h-[min(40rem,calc(100dvh-11rem))]";
 
@@ -36,28 +42,29 @@ function playerInitial(name: string) {
 
 const springSnappy = { type: "spring" as const, stiffness: 420, damping: 32 };
 const springSoft = { type: "spring" as const, stiffness: 280, damping: 28 };
-/** Картны 3D эргэлт — хурдан, товч */
 const flipSpring = {
   type: "spring" as const,
   stiffness: 140,
   damping: 22,
   mass: 0.65,
 };
-
-/** Үнэн/Зориг сонгосны дараа асуултын карт — илүү хурдан «гарч ирэх» */
 const flipSpringTod = {
   type: "spring" as const,
   stiffness: 320,
   damping: 24,
   mass: 0.42,
 };
-
 const todQuestionShellSpring = {
   type: "spring" as const,
   stiffness: 520,
   damping: 30,
   mass: 0.48,
 };
+
+const AD_FREQUENCY =
+  Number(process.env.NEXT_PUBLIC_AD_FREQUENCY) > 0
+    ? Number(process.env.NEXT_PUBLIC_AD_FREQUENCY)
+    : 8;
 
 export function GamePage({ onGameOver, onBack }: GamePageProps) {
   const {
@@ -70,17 +77,23 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
     drawCard,
     revealCard,
     nextPlayer,
+    skipCard,
+    undoLastCard,
     getCardsPlayed,
     isGameOver,
     truthOrDareSide,
     setTruthOrDareSide,
     selectedCategories,
     switchDeckDuringGame,
+    history,
   } = useGameStore();
 
   const [showAd, setShowAd] = useState(false);
   const [pendingNext, setPendingNext] = useState(false);
   const [showDeckPicker, setShowDeckPicker] = useState(false);
+  const [showTimer, setShowTimer] = useState(false);
+
+  const { trigger } = useFeedback();
 
   const selectedGame = gameTypes.find((g) => g.id === selectedGameId);
   const activePackId = lobbyPackIdFromSelection(selectedCategories);
@@ -94,6 +107,8 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
   const cardsPlayed = getCardsPlayed();
   const progress =
     totalCardsInDeck > 0 ? (cardsPlayed / totalCardsInDeck) * 100 : 0;
+  const canUndo = history.length > 0;
+  const isDareCard = isTruthOrDare && currentCard?.truthOrDare === "dare";
 
   useEffect(() => {
     if (isGameOver()) {
@@ -102,15 +117,18 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
   }, [cardsPlayed, isGameOver, onGameOver]);
 
   const handleDrawCard = () => {
+    trigger("flip");
     drawCard();
   };
 
   const handleRevealCard = () => {
+    trigger("flip");
     revealCard();
   };
 
   const handleNextCard = () => {
-    if ((cardsPlayed + 1) % 5 === 0 && cardsPlayed > 0) {
+    trigger("next");
+    if ((cardsPlayed + 1) % AD_FREQUENCY === 0 && cardsPlayed > 0) {
       setPendingNext(true);
       setShowAd(true);
     } else {
@@ -124,6 +142,17 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
       setPendingNext(false);
       nextPlayer();
     }
+  };
+
+  const handleSkip = () => {
+    trigger("skip");
+    skipCard();
+  };
+
+  const handleUndo = () => {
+    if (!canUndo) return;
+    trigger("tap");
+    undoLastCard();
   };
 
   return (
@@ -154,38 +183,57 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 flex items-center justify-between px-4 py-4"
+          className="relative z-10 flex items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-4"
         >
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
             className="rounded-full bg-secondary/50 backdrop-blur-sm hover:bg-secondary"
+            aria-label="Буцах"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
 
-          <div className="text-center">
-            <div className="text-sm font-medium">{selectedGame?.name}</div>
+          <div className="min-w-0 flex-1 text-center">
+            <div className="truncate text-sm font-medium">
+              {selectedGame?.name}
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              {cardsPlayed}/{totalCardsInDeck} карт
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowDeckPicker(true)}
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl",
-              "bg-gradient-to-br shadow-lg transition hover:brightness-110 hover:ring-2 hover:ring-white/35",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
-              selectedGame?.color,
-            )}
-            aria-label="Картын багц солих"
-            title="Картын багц солих"
-          >
-            {selectedGame?.icon}
-          </button>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleUndo}
+              disabled={!canUndo}
+              className="rounded-full bg-secondary/50 backdrop-blur-sm hover:bg-secondary disabled:opacity-30"
+              aria-label="Сүүлчийн алхамыг буцаах"
+              title="Сүүлчийн алхамыг буцаах"
+            >
+              <Undo2 className="h-5 w-5" />
+            </Button>
+            <button
+              type="button"
+              onClick={() => setShowDeckPicker(true)}
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl",
+                "bg-gradient-to-br shadow-lg transition hover:brightness-110 hover:ring-2 hover:ring-white/35",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+                selectedGame?.color,
+              )}
+              aria-label="Картын багц солих"
+              title="Картын багц солих"
+            >
+              {selectedGame?.icon}
+            </button>
+          </div>
         </motion.header>
 
-        {/* Одоогийн ээлж — тоглогч солигдох бүрт шинээр орж ирнэ */}
+        {/* Одоогийн ээлж */}
         <AnimatePresence mode="wait">
           <motion.div
             key={`turn-${currentPlayerIndex}-${currentPlayer?.id ?? "p"}`}
@@ -234,13 +282,16 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
           </motion.div>
         </AnimatePresence>
 
-        {/* Card Area — ээлж бүрт: Карт ухах ↔ карт */}
+        {/* Card Area */}
         <div className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-3 py-3 sm:px-4 sm:py-4">
           <AnimatePresence mode="wait">
             {needsTruthOrDarePick ? (
               <TruthOrDareChoice
                 key={`tod-pick-${currentPlayerIndex}`}
-                onPick={setTruthOrDareSide}
+                onPick={(side) => {
+                  trigger("tap");
+                  setTruthOrDareSide(side);
+                }}
                 dareSurfaceClassName={
                   currentSwatch?.deckSurface ??
                   cn(
@@ -274,8 +325,8 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                   whileTap={{ scale: 0.97 }}
                   onClick={handleDrawCard}
                   className="group relative"
+                  aria-label="Карт ухах"
                 >
-                  {/* Card back design */}
                   <div
                     className={cn(
                       CARD_SHELL,
@@ -284,13 +335,11 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                         cn("bg-gradient-to-br shadow-2xl", selectedGame?.color),
                     )}
                   >
-                    {/* Decorative pattern */}
                     <div className="absolute inset-0 opacity-20">
                       <div className="absolute inset-4 rounded-2xl border-2 border-dashed border-white sm:inset-5" />
                       <div className="absolute inset-8 rounded-xl border border-white/50 sm:inset-10" />
                     </div>
 
-                    {/* Center content */}
                     <div className="relative flex h-full min-h-0 flex-col items-center justify-center gap-5 p-6 sm:gap-6 sm:p-8">
                       <motion.div
                         animate={{
@@ -318,11 +367,9 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                       </div>
                     </div>
 
-                    {/* Shine effect */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                   </div>
 
-                  {/* Card shadow */}
                   <div className="absolute -bottom-5 left-1/2 h-5 w-52 -translate-x-1/2 rounded-full bg-black/25 blur-xl sm:w-64" />
                 </motion.button>
               </motion.div>
@@ -370,8 +417,10 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                     disabled={isCardRevealed}
                     whileHover={!isCardRevealed ? { scale: 1.02 } : {}}
                     whileTap={!isCardRevealed ? { scale: 0.98 } : {}}
+                    aria-label={
+                      isCardRevealed ? "Картын асуулт" : "Карт нээх"
+                    }
                   >
-                    {/* Card front — гаднах тоглогчийн өнгө, дотор асуулт тусдаа «карт» */}
                     <div
                       className={cn(
                         "absolute inset-0 isolate flex flex-col overflow-hidden rounded-3xl p-4 shadow-2xl sm:p-5",
@@ -391,7 +440,6 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                         className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-b from-white/14 via-transparent to-black/20"
                         aria-hidden
                       />
-                      {/* Category badge — тоглогчийн өнгөтэй нийцүүлсэн цайвар хэлбэр */}
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -424,7 +472,6 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                         {categoryLabels[currentCard.category]}
                       </motion.div>
 
-                      {/* Асуултын карт — зөвхөн текст биш, хүрээтэй самбар */}
                       <div className="relative z-[2] flex min-h-0 flex-1 flex-col">
                         <motion.div
                           initial={{ opacity: 0, y: 14, scale: 0.98 }}
@@ -457,7 +504,6 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                       </div>
                     </div>
 
-                    {/* Card back */}
                     <div
                       className={cn(
                         "absolute inset-0 flex items-center justify-center overflow-hidden rounded-3xl ring-1 ring-white/15",
@@ -493,14 +539,13 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                   </motion.button>
                 </motion.div>
 
-                {/* Card shadow */}
                 <div className="pointer-events-none absolute -bottom-5 left-1/2 h-5 w-52 -translate-x-1/2 rounded-full bg-black/25 blur-xl sm:w-64" />
               </motion.div>
             ) : null}
           </AnimatePresence>
         </div>
 
-        {/* Next Button */}
+        {/* Action toolbar */}
         <AnimatePresence>
           {isCardRevealed && (
             <motion.div
@@ -517,12 +562,38 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
                 scale: 0.98,
                 transition: { duration: 0.2 },
               }}
-              className="relative z-10 px-4 pb-6"
+              className="relative z-10 space-y-2 px-4 pb-6"
             >
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 flex-1 gap-1.5 rounded-xl border-border/70 bg-secondary/40 text-xs font-semibold backdrop-blur-sm sm:text-sm"
+                  onClick={handleSkip}
+                >
+                  <SkipForward className="h-4 w-4" />
+                  Алгасах
+                </Button>
+                {isDareCard && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 flex-1 gap-1.5 rounded-xl border-border/70 bg-secondary/40 text-xs font-semibold backdrop-blur-sm sm:text-sm"
+                    onClick={() => {
+                      trigger("tap");
+                      setShowTimer(true);
+                    }}
+                  >
+                    <TimerIcon className="h-4 w-4" />
+                    Цаг тааруулах
+                  </Button>
+                )}
+              </div>
+
               <Button
                 size="lg"
                 className={cn(
-                  "w-full gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary/90 font-bold h-16",
+                  "h-16 w-full gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary/90 font-bold",
                   "shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40",
                 )}
                 onClick={handleNextCard}
@@ -542,7 +613,6 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
-          {/* Progress glow */}
           <motion.div
             className="absolute top-0 h-full w-8 bg-gradient-to-r from-transparent via-white/50 to-transparent"
             initial={{ left: 0 }}
@@ -630,6 +700,10 @@ export function GamePage({ onGameOver, onBack }: GamePageProps) {
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showTimer && <DareTimer onClose={() => setShowTimer(false)} />}
       </AnimatePresence>
 
       {/* Interstitial Ad */}
