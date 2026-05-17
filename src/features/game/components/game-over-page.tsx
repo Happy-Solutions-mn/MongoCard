@@ -18,6 +18,8 @@ import { gameTypes } from "@/lib/game-data";
 import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { useFeedback } from "@/hooks/use-feedback";
+import { AdSpaceFrame } from "./ad-space-label";
+import { HappySimPromo } from "./happy-sim-promo";
 
 interface GameOverPageProps {
   onPlayAgain: () => void;
@@ -192,15 +194,9 @@ export function GameOverPage({ onPlayAgain, onNewGame }: GameOverPageProps) {
               Нийт {cardsPlayed} карт тоглолоо
             </motion.p>
 
-            <div className="mb-8 flex h-72 w-full max-w-sm flex-col items-center justify-center rounded-3xl border border-dashed border-muted-foreground/30 bg-card/50 p-8">
-              <div className="mb-4 text-6xl">📺</div>
-              <h3 className="mb-2 text-lg font-semibold text-foreground">
-                Зар сурталчилгаа
-              </h3>
-              <p className="text-center text-sm text-muted-foreground">
-                Энд таны зар харагдана
-              </p>
-            </div>
+            <AdSpaceFrame className="mb-8">
+              <HappySimPromo variant="card" />
+            </AdSpaceFrame>
 
             <Button
               size="lg"
@@ -210,7 +206,7 @@ export function GameOverPage({ onPlayAgain, onNewGame }: GameOverPageProps) {
                 "shadow-xl shadow-primary/30",
               )}
             >
-              <Sparkles className="h-5 w-5" />
+              {/* <Sparkles className="h-5 w-5" /> */}
               Үргэлжлүүлэх
             </Button>
           </motion.div>

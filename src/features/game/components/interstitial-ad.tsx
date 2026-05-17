@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { AdSpaceFrame } from "./ad-space-label";
+import { HappySimPromo } from "./happy-sim-promo";
 
 interface InterstitialAdProps {
   isOpen: boolean;
@@ -116,42 +118,37 @@ export function InterstitialAd({ isOpen, onClose }: InterstitialAdProps) {
               </AnimatePresence>
             </div>
 
-            {/* Ad content placeholder */}
-            <motion.div 
+            <motion.div
               initial={{ y: 20 }}
               animate={{ y: 0 }}
               transition={{ delay: 0.1 }}
-              className="flex h-80 w-full max-w-sm flex-col items-center justify-center rounded-3xl border border-dashed border-muted-foreground/20 bg-card/50 p-8 shadow-xl"
+              className="w-full max-w-sm"
             >
-              <motion.div 
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="mb-4 text-7xl"
-              >
-                📺
-              </motion.div>
-              <h3 className="mb-2 text-xl font-bold text-foreground">
-                Зар сурталчилгаа
-              </h3>
-              <p className="text-center text-sm text-muted-foreground">
-                Энд таны зар сурталчилгаа харагдана.
-                <br />
-                Google AdSense эсвэл шууд гэрээт зар.
-              </p>
+              <AdSpaceFrame>
+                <HappySimPromo variant="card" />
+              </AdSpaceFrame>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="mt-6 flex items-center gap-2 text-muted-foreground"
+              className="mt-6 flex flex-col items-center gap-3"
             >
-              <Timer className="h-4 w-4" />
-              <p className="text-sm">
-                {canSkip
-                  ? "Алгасах товч дарж тоглоомоо үргэлжлүүлнэ үү"
-                  : `${countdown} секундын дараа алгасах боломжтой`}
-              </p>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Timer className="h-4 w-4" />
+                <p className="text-sm">
+                  {canSkip
+                    ? "Алгасах товч дарж тоглоомоо үргэлжлүүлнэ үү"
+                    : `${countdown} секундын дараа алгасах боломжтой`}
+                </p>
+              </div>
+              <Link
+                href="/advertise"
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+              >
+                Өөрийн брэндээ энд сурталчлах уу?
+              </Link>
             </motion.div>
           </motion.div>
         </motion.div>

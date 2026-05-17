@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { HappySimPromo } from "./happy-sim-promo";
 
 interface AdsenseSlotProps {
   slotId: string;
@@ -21,7 +22,7 @@ const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
 
 /**
  * Жинхэнэ AdSense slot — `NEXT_PUBLIC_ADSENSE_CLIENT_ID` тохируулсан үед л идэвхждэг.
- * Эс бөгөөс placeholder UI харагдана (development mode-д бөглөмж).
+ * Эс бөгөөс HappySim сурталчилгаа харагдана.
  */
 export function AdsenseSlot({
   slotId,
@@ -48,23 +49,7 @@ export function AdsenseSlot({
   }, []);
 
   if (!ADSENSE_CLIENT_ID) {
-    return (
-      <div
-        className={cn(
-          "flex h-14 w-full items-center justify-center rounded-2xl border border-dashed border-muted-foreground/20 bg-secondary/30",
-          className,
-        )}
-      >
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <span aria-hidden className="text-lg">
-            📢
-          </span>
-          <span className="text-xs font-medium">
-            Зар сурталчилгааны байршил
-          </span>
-        </div>
-      </div>
-    );
+    return <HappySimPromo variant="banner" className={className} />;
   }
 
   return (

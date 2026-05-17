@@ -26,6 +26,7 @@ import { useGameStore } from "@/lib/game-store";
 import { getPlayerSwatch } from "@/lib/player-colors";
 import { GameCard } from "./game-card";
 import { AdBanner } from "./ad-banner";
+import { AdvertiseCta } from "./advertise-cta";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -121,7 +122,7 @@ export function HomePage({ onSelectGame }: HomePageProps) {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative z-10 px-4 pb-2 pt-12 text-center"
       >
-        <motion.div
+        {/* <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -129,7 +130,7 @@ export function HomePage({ onSelectGame }: HomePageProps) {
         >
           <Sparkles className="h-4 w-4" />
           <span>Монголын №1 party тоглоом</span>
-        </motion.div>
+        </motion.div> */}
 
         <h1 className="mb-2 text-5xl font-black tracking-tight md:text-6xl">
           <span className="gradient-text">Монго</span>
@@ -319,6 +320,8 @@ export function HomePage({ onSelectGame }: HomePageProps) {
                 </div>
               </div>
             </div>
+
+            <AdvertiseCta className="mt-1" />
 
             <div className="flex gap-3 pt-1">
               <Button

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { AdsenseSlot } from "./adsense-slot";
+import { AdSpaceFrame } from "./ad-space-label";
 
 interface AdBannerProps {
   position?: "top" | "bottom";
@@ -33,9 +34,9 @@ export function AdBanner({
       role="complementary"
       aria-label="Зар сурталчилгаа"
     >
-      <div className="mx-auto w-full max-w-md">
+      <AdSpaceFrame className="mx-auto w-full max-w-md">
         <AdsenseSlot slotId={slotId} className="min-h-14" />
-      </div>
+      </AdSpaceFrame>
     </motion.div>
   );
 }

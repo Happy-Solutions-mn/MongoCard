@@ -352,6 +352,10 @@ export function SettingsView() {
           <Link href="/terms" className="hover:text-foreground">
             Үйлчилгээний нөхцөл
           </Link>
+          <span className="mx-2">•</span>
+          <Link href="/advertise" className="hover:text-foreground">
+            Зар сурталчилгаа
+          </Link>
         </footer>
       </div>
     </main>
