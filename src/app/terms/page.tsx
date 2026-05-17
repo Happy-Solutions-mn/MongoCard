@@ -3,6 +3,10 @@ import {
   LegalPageShell,
   LegalSection,
 } from "@/components/legal-page-shell";
+import {
+  HAPPYSOLUTIONS_INSTAGRAM_LABEL,
+  HAPPYSOLUTIONS_INSTAGRAM_URL,
+} from "@/lib/happysolutions-contact";
 
 export const metadata: Metadata = {
   title: "Үйлчилгээний нөхцөл",
@@ -77,10 +81,12 @@ export default function TermsPage() {
         <p>
           Энэхүү нөхцлийн талаар:{" "}
           <a
-            href="mailto:hello@happysolutions.mn"
+            href={HAPPYSOLUTIONS_INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-primary underline"
           >
-            hello@happysolutions.mn
+            {HAPPYSOLUTIONS_INSTAGRAM_LABEL}
           </a>
         </p>
       </LegalSection>

@@ -1,18 +1,10 @@
 export const AD_SPACE_LABEL = "Таны сурталчилгааны орон зай";
 
-export const ADVERTISE_CONTACT_EMAIL =
-  process.env.NEXT_PUBLIC_ADVERTISE_EMAIL ?? "hello@happysolutions.mn";
-
-export const ADVERTISE_MAIL_SUBJECT =
-  "МонгоКарт — зар сурталчилгааны хүсэлт";
-
-export function advertiseMailtoHref(body?: string): string {
-  const params = new URLSearchParams({
-    subject: ADVERTISE_MAIL_SUBJECT,
-  });
-  if (body) params.set("body", body);
-  return `mailto:${ADVERTISE_CONTACT_EMAIL}?${params.toString()}`;
-}
+export {
+  HAPPYSOLUTIONS_INSTAGRAM_URL as ADVERTISE_CONTACT_URL,
+  HAPPYSOLUTIONS_INSTAGRAM_HANDLE,
+  HAPPYSOLUTIONS_INSTAGRAM_LABEL as ADVERTISE_CONTACT_LABEL,
+} from "./happysolutions-contact";
 
 export const AD_PLACEMENTS = [
   {

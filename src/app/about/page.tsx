@@ -6,6 +6,10 @@ import {
   LegalSection,
 } from "@/components/legal-page-shell";
 import { gameTypes } from "@/lib/game-data";
+import {
+  HAPPYSOLUTIONS_INSTAGRAM_LABEL,
+  HAPPYSOLUTIONS_INSTAGRAM_URL,
+} from "@/lib/happysolutions-contact";
 
 export const metadata: Metadata = {
   title: "Бидний тухай",
@@ -59,12 +63,14 @@ export default function AboutPage() {
           </a>{" "}
           баг бүтээж байна. Санал, шүүмж, хамтран ажиллах хүсэлтэй бол биднийг{" "}
           <a
-            href="mailto:hello@happysolutions.mn"
+            href={HAPPYSOLUTIONS_INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-primary underline"
           >
-            hello@happysolutions.mn
+            {HAPPYSOLUTIONS_INSTAGRAM_LABEL}
           </a>{" "}
-          хаягаар холбогдоорой.
+          Instagram хуудсаар холбогдоорой.
         </p>
       </LegalSection>
 

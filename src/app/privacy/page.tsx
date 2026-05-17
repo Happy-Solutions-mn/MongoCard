@@ -3,6 +3,10 @@ import {
   LegalPageShell,
   LegalSection,
 } from "@/components/legal-page-shell";
+import {
+  HAPPYSOLUTIONS_INSTAGRAM_LABEL,
+  HAPPYSOLUTIONS_INSTAGRAM_URL,
+} from "@/lib/happysolutions-contact";
 
 export const metadata: Metadata = {
   title: "Нууцлалын бодлого",
@@ -86,10 +90,12 @@ export default function PrivacyPage() {
         <p>
           Асуулт, гомдол байвал:{" "}
           <a
-            href="mailto:hello@happysolutions.mn"
+            href={HAPPYSOLUTIONS_INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-primary underline"
           >
-            hello@happysolutions.mn
+            {HAPPYSOLUTIONS_INSTAGRAM_LABEL}
           </a>
         </p>
       </LegalSection>

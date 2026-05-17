@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail, Megaphone } from "lucide-react";
+import { Instagram, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   LegalPageShell,
@@ -9,8 +9,8 @@ import {
 import {
   AD_AUDIENCE_POINTS,
   AD_PLACEMENTS,
-  ADVERTISE_CONTACT_EMAIL,
-  advertiseMailtoHref,
+  ADVERTISE_CONTACT_LABEL,
+  ADVERTISE_CONTACT_URL,
 } from "@/lib/advertise";
 
 export const metadata: Metadata = {
@@ -19,22 +19,7 @@ export const metadata: Metadata = {
     "МонгоКарт дээр брэнд, үйлчилгээээ сурталчлах — banner, завсрын зар, тоглоом дууссаны дараах байршил.",
 };
 
-const MAIL_BODY = `Сайн байна уу,
-
-МонгоКарт дээр зар сурталчилгаа байршуулах хүсэлт илгээж байна.
-
-Компанийн нэр:
-Вэбсайт:
-Сурталчлах бүтээгдэхүүн/үйлчилгээ:
-Сонирхож буй байршил (banner / interstitial / game-over):
-Товч тайлбар:
-
-Холбоо барих:
-`;
-
 export default function AdvertisePage() {
-  const mailto = advertiseMailtoHref(MAIL_BODY);
-
   return (
     <LegalPageShell title="Зар сурталчилгаа" updatedAt="2026-05-17">
       <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4">
@@ -81,17 +66,29 @@ export default function AdvertisePage() {
       <LegalSection title="Хэрхэн холбогдох вэ?">
         <p>
           Үнийн санал, хугацаа, контентын шаардлагаар хамтран ажиллахын тулд
-          доорх имэйлээр бидэнтэй холбогдоорой. Илгээхэд бэлэн загварчилсан
-          имэйл нээгдэнэ — мэдээллээ бөглөөд илгээнэ үү.
+          бидний Instagram хуудсанд DM илгээнэ үү. Компанийн нэр, сурталчлах
+          бүтээгдэхүүн, сонирхож буй байршлыг (banner / interstitial /
+          game-over) бичээрэй.
         </p>
-        <p className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 font-mono text-sm text-foreground">
-          {ADVERTISE_CONTACT_EMAIL}
+        <p className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm text-foreground">
+          <a
+            href={ADVERTISE_CONTACT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary underline underline-offset-2"
+          >
+            {ADVERTISE_CONTACT_LABEL}
+          </a>
         </p>
         <div className="flex flex-col gap-2 pt-1 sm:flex-row">
           <Button asChild size="lg" className="rounded-2xl font-bold">
-            <a href={mailto}>
-              <Mail className="mr-2 h-4 w-4" />
-              Имэйл илгээх
+            <a
+              href={ADVERTISE_CONTACT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Instagram className="mr-2 h-4 w-4" />
+              Instagram-д бичих
             </a>
           </Button>
           <Button
